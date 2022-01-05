@@ -1,6 +1,12 @@
 % {}~
 %% TO DO
 % - verifica range correnti MEBT quads and dipoles;
+% - prepara un po' di cycodes (tutte le linee trattamento): p/C 30mm, 90mm, 270mm;
+% - acquisisci misure (singolo scan, scan parametrizzato);
+% - mostra raw data;
+% - mostra distribuzioni 3D;
+% - scan 1 quad, n dipoles;
+% - infos per scans in HEBT;
 
 %% include libraries and other general settings
 % - include Matlab libraries
@@ -26,10 +32,11 @@ optimoptions('lsqcurvefit','OptimalityTolerance',1E-12,'FunctionTolerance',1E-8)
 %   S:\Accelerating-System\Accelerator-data\Area dati MD\00Setting\MEBT\MEBTTM.xls
 % - MADX table columns:
 %   * 1, 2: Brho [Tm] and BraggPeak position [mm];
-%   * 3 and 4: Idip and Iquad [A];
-%   * 5 and 6: K0L [rad] and K1 [m-2];
-%   * 7, 8 and 9: x, betx and dx @monitor [m];
-%   * 10, 11 and 12 : y, bety and dy @monitor [m];
+%   * 3, 4 and 5: x, betx and dx @monitor [m];
+%   * 6, 7 and 8: y, bety and dy @monitor [m];
+%   * 9  and 10: Iquad [A] and K1 [m-2];
+%   * 11 and 12: Idip [A] and K0L [rad] of scanning dipole;
+%   * 13 and 14: Idip [A] and K0L [rad] of following dipole;
 
 %% varie input
 % - beam stat quantities
@@ -46,33 +53,42 @@ DGcurrMaxs=[  60.0           300.0          60.0           300.0          ]; % [
 myCyCode="240006cc0900"; % Sala 1, Prot, 90 mm
 
 %% set up
-% M2
-scanMADname="externals\optics\MEBT\m2_scan.tfs";
-quadName="M1-016A-QIB";
-dipName="M2-001A-IDB";
-pathQuaAlone="alone_M1-016A-QIB";
-pathDipAlone="alone_M2-001A-IDB";
-pathCombined="combined_M1-016A-QIB_M2-001A-IDB";
+% % M2
+% scanMADname="externals\optics\MEBT\m2_scan.tfs";
+% quadName="M1-016A-QIB";
+% dipName="M2-001A-IDB";
 % % M3
 % scanMADname="externals\optics\MEBT\m3_scan.tfs";
 % quadName="M2-009A-QIB";
 % dipName="M3-001A-IDB";
+% M2-M3
+scanMADname="externals\optics\MEBT\m2m3_scan.tfs";
+quadName="M1-016A-QIB";
+dipName="M3-001A-IDB";
+% all
+pathQuaAlone=sprintf("alone_%s",quadName);
+pathDipAlone=sprintf("alone_%s",dipName);
+pathCombined=sprintf("combined_%s_%s",quadName,dipName);
+% all MEBT magnets of interest
+MEBTmagnetNames=[ "M2-001A-IDB"  "M2-009A-QIB"  "M3-001A-IDB"  "M1-016A-QIB"  ];
 
 %% main - MADX
 % - acquire data
 [MADXtable,MADXtableHeaders]=ReadMADXData(scanMADname);
-ScanName=GetEleName(MADXtableHeaders(4));
-ParName=GetEleName(MADXtableHeaders(3));
+ScanName=GetEleName(MADXtableHeaders(9));
+ParName=GetEleName(MADXtableHeaders(11));
+MonName=GetEleName(MADXtableHeaders(3));
+MADXtitle=sprintf("MADX - %s - %s",LabelMe(ScanName),LabelMe(MonName));
 % - convert MADX optics data into FWHMs and BARs
 [MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs]=MADXtoFWHMsBARs(MADXtable,emiGeo,sigdpp,avedpp);
 % - show scans
-ShowScans(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,"MADX");
-% - show MADX responses (i.e. KOL(Idip), K1(Iqua), x,y(Idip), x,y(Iquad);
+ShowScans(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
+% - show MADX responses, i.e. KOL(Idip) and K1(Iqua);
 ShowMADXResponses(MADXtable,ScanName,ParName);
-% - show responses (i.e. x,y(Idip), x,y(Iquad);
-ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,"MADX");
-% - show xy ellipses during scan
-ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,"MADX");
+% - show responses, i.e. x,y(Idip), x,y(Iquad);
+ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
+% - show xy ellipses during scans
+ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
 
 %% main - create configuration files
 % - LGEN files
@@ -97,6 +113,23 @@ for iDip=1:length(dipValues)
     nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
     WriteAPIfile(APIfileName,nAPI,myCyCode);
 end
+
+%   . all 4 MEBT LGENs:
+[selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,MEBTmagnetNames);
+[LGENfileName,APIfileName,~]=TreeStructure(part,pathQuaAlone);
+%   . quad alone: +/-15A around TM, 1A of step
+quaValues=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,quadName,15,1);
+values=zeros(length(quaValues),1);
+for iMag=1:length(MEBTmagnetNames)
+    if ( strcmp(MEBTmagnetNames(iMag),quadName) )
+        values(:,iMag)=quaValues;
+    else
+        values(:,iMag)=TMcurrsProt(indLGENs(iMag));
+    end
+end
+nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
+WriteAPIfile(APIfileName,nAPI,myCyCode);
+
 % values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,missing(),quadName,15,1);
 % values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,dipName,5,5,values);
 % nAPI=WriteLGENQAfile("myLGEN.xls",selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));

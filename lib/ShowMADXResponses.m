@@ -1,10 +1,10 @@
 function ShowMADXResponses(MADXtable,ScanName,ParName)
     fprintf('plotting responses to magnet currents as from MADX...\n');
     Brho=unique(MADXtable(:,1));
-    Idip=unique(MADXtable(:,3));
-    Iqua=unique(MADXtable(:,4));
-    K0L=unique(MADXtable(:,5));
-    K1=unique(MADXtable(:,6));
+    Idip=unique(MADXtable(:,11));
+    Iqua=unique(MADXtable(:,9));
+    K0L=unique(MADXtable(:,12));
+    K1=unique(MADXtable(:,10));
     %%
     figure();
     % - K0L(Idip)

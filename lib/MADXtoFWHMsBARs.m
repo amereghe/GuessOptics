@@ -1,7 +1,7 @@
 function [FWHMs,BARs,ScanXs,ParXs]=MADXtoFWHMsBARs(MADXtable,emiGeo,sigdpp,avedpp,myPlanes)
     fprintf('converting MADX data into FWHMs and BARs...\n');
-    iOrb =[ 7 10 ]; iBeta=[ 8 11 ]; iDisp=[ 9 12 ]; % hor,ver planes
-    iScanX=4; iParX=3; % Iquad and Idip [A];
+    iOrb =[ 3 6 ]; iBeta=[ 4 7 ]; iDisp=[ 5 8 ]; % hor,ver planes
+    iScanX=9; iParX=11; % Iquad and Idip [A];
     sig2FWHM=2*sqrt(2*log(2.0));
     
     %% sanity checks
