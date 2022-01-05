@@ -5,7 +5,6 @@
 % - acquisisci misure (singolo scan, scan parametrizzato);
 % - mostra raw data;
 % - mostra distribuzioni 3D;
-% - scan 1 quad, n dipoles;
 % - infos per scans in HEBT;
 
 %% include libraries and other general settings
@@ -24,8 +23,8 @@ optimoptions('lsqcurvefit','OptimalityTolerance',1E-12,'FunctionTolerance',1E-8)
 %% summary materiale a disposizione:
 % - BL(I) of MEBT main dipoles:
 %   D:\VMs\vb_share\repos\optics\MEBT\materiale_SIMO\MEBT - Calcolo I_v3.xlsx
-%   NB: it contains also the info that dipole 02 is M2-001A-IDB (Sheet:
-%   Dipoles; compare range B3:B8 and J36:J41);
+%   NB: it contains also the info that dipole 02 is M2-001A-IDB.
+%       check sheet: Dipoles; compare range B3:B8 and J36:J41;
 % - LPOW map (.xls files by RBasso, MEBT and HEBT):
 %   D:\VMs\vb_share\repos\optics
 % - TM currents:
@@ -44,13 +43,38 @@ part="PROTON";
 emiGeo=[ 4.813808E-6 2.237630E-6 ]; % [pi m rad]
 sigdpp=3E-3; avedpp=-8.436E-3; % []
 % - magnet mapping
-magnetNames=[ "M1-016A-QIB"  "M2-001A-IDB"  "M2-009A-QIB"  "M3-001A-IDB"  ];
-LGENnames=[   "P5-011A-LGEN" "P5-005A-LGEN" "P5-012A-LGEN" "P5-006A-LGEN" ];
-TMcurrsProt=[ 46.5           125.5          25.0           125.93         ]; % [A]
-DGcurrMins=[  0.5            0.5            0.5            0.5            ]; % [A]
-DGcurrMaxs=[  60.0           300.0          60.0           300.0          ]; % [A]
+magnetNames=[ 
+    "M1-016A-QIB"  "M2-001A-IDB"  "M2-009A-QIB"  "M3-001A-IDB"     ... % MEBT
+    "H2-022A-QUE"  "H3-003A-SW2"  "H3-009A-MBS"  "H3-015A-MBS"     ... % HEBT-hor (H2-H3)
+    "H4-013A-QUE"  "V1-001A-SWV"  "V1-005A-MBU"                    ... % HEBT-ver (H4-V1)
+    ];
+nickNames=[
+    "M7"           "M1"           "M8"           "M2"              ... % MEBT
+    "H10"          "H4"           "H6"           "H7"              ... % HEBT-hor (H2-H3)
+    "H13"          "V1"           "V2"                             ... % HEBT-ver (H4-V1)
+    ];
+LGENnames=[   
+    "P5-011A-LGEN" "P5-005A-LGEN" "P5-012A-LGEN" "P5-006A-LGEN"    ... % MEBT
+    "P7-010A-LGEN" "P7-004A-LGEN" "P7-006A-LGEN" "P7-007A-LGEN"    ... % HEBT-hor (H2-H3)
+    "P7-013A-LGEN" "PA-003A-LGEN" "PA-004A-LGEN"                   ... % HEBT-ver (H4-V1)
+    ];
+TMcurrsProt=[ 
+    46.5           125.5          25.0           125.93            ... % MEBT
+    11.934         664.5          663.5          662.71            ... % HEBT-hor (H2-H3), Sala 2V, Prot, 90mm
+    34.17          656.7          670.96                           ... % HEBT-ver (H4-V1), Sala 2V, Prot, 90mm
+    ]; % [A]
+DGcurrMins=[
+    0.5            0.5            0.5            0.5               ... % MEBT
+    0.5            0.5            0.5            0.5               ... % HEBT-hor (H2-H3)
+    0.5            0.5            0.5            0.5               ... % HEBT-ver (H4-V1)
+    ]; % [A]
+DGcurrMaxs=[
+    150.0          300.0          150.0          300.0             ... % MEBT
+    150.0          3000.0         3000.0         3000.0            ... % HEBT-hor (H2-H3)
+    150.0          3000.0         3000.0                           ... % HEBT-ver (H4-V1)
+    ]; % [A]
 % - cycle codes
-myCyCode="240006cc0900"; % Sala 1, Prot, 90 mm
+myCyCode="240004cc0100"; % Sala 2V, Prot, 90mm
 
 %% set up
 % % M2
@@ -66,7 +90,7 @@ scanMADname="externals\optics\MEBT\m2m3_scan.tfs";
 quadName="M1-016A-QIB";
 dipName="M3-001A-IDB";
 % all MEBT magnets of interest
-MEBTmagnetNames=[ "M2-001A-IDB"  "M2-009A-QIB"  "M3-001A-IDB"  "M1-016A-QIB"  ];
+MEBTmagnetNames=[ "M1-016A-QIB" "M2-001A-IDB" "M2-009A-QIB" "M3-001A-IDB" ];
 
 %% main - MADX
 % - acquire data
