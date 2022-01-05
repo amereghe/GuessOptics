@@ -1,6 +1,7 @@
 function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetNames,deltas,steps,values)
     % generate just the bare values for a scan in current around TM values
-    % peakCurrs,myMagnetNames,deltas,steps must have the same length
+    % TMcurrs,magnetNames,peakCurrs must have the same length
+    % myMagnetNames,deltas,steps must have the same length
     % next step: give the possibility to have ranges of deltas and steps
     nPeakCurrs=4;
     if ( length(myMagnetNames)==1 )
@@ -19,6 +20,7 @@ function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetN
         index=find(magnetNames==myMagnetNames(iMag));
         tmpValues=TMcurrs(index)-deltas(iMag):steps(iMag):TMcurrs(index)+deltas(iMag);
         nTmpValues=length(tmpValues);
+        % add bump in current at end of scan
         if ( ~ismissing(peakCurrs) )
             tmpValues(nTmpValues+1:nTmpValues+nPeakCurrs)=peakCurrs(index);
             nTmpValues=nTmpValues+nPeakCurrs;
@@ -37,8 +39,8 @@ function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetN
                 % the last value of the current series should be repeated till the end
                 values(nTmpValues+1:end,newCol)=tmpValues(end);
             end
-            nSeries=size(values,2);
         end
+        nVals=size(values,1); nSeries=size(values,2);
     end
     fprintf("...done.\n");
 end
