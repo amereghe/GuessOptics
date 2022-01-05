@@ -65,10 +65,6 @@ myCyCode="240006cc0900"; % Sala 1, Prot, 90 mm
 scanMADname="externals\optics\MEBT\m2m3_scan.tfs";
 quadName="M1-016A-QIB";
 dipName="M3-001A-IDB";
-% all
-pathQuaAlone=sprintf("alone_%s",quadName);
-pathDipAlone=sprintf("alone_%s",dipName);
-pathCombined=sprintf("combined_%s_%s",quadName,dipName);
 % all MEBT magnets of interest
 MEBTmagnetNames=[ "M2-001A-IDB"  "M2-009A-QIB"  "M3-001A-IDB"  "M1-016A-QIB"  ];
 
@@ -91,47 +87,24 @@ ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
 ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
 
 %% main - create configuration files
-% - LGEN files
+% - paths
+pathQuaAlone=sprintf("alone_%s",quadName);
+pathDipAlone=sprintf("alone_%s",dipName);
+pathCombined=sprintf("combined_%s_%s",quadName,dipName);
+pathQuaDipDip=sprintf("combined_%s_allDips",quadName);
+% - LGEN files (ask all 4 LGENs in .xls file, such that used currents are logged in LPOW error log)
 %   . quad alone: +/-15A around TM, 1A of step
-[selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,quadName);
-quaValues=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,quadName,15,1);
-[LGENfileName,APIfileName,~]=TreeStructure(part,pathQuaAlone);
-nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,quaValues,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
-WriteAPIfile(APIfileName,nAPI,myCyCode);
+CreateMeasFiles(pathQuaAlone,quadName,15,1,magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
 %   . dipole alone: +/-10A around TM, 0.5A of step
-[selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,dipName);
-dipValues=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,dipName,5,0.5);
-[LGENfileName,APIfileName,~]=TreeStructure(part,pathDipAlone);
-nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,dipValues,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
-WriteAPIfile(APIfileName,nAPI,myCyCode);
+CreateMeasFiles(pathDipAlone,dipName,10,0.5,magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
 %    . combined quad-dip scan
-[selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,[quadName dipName]);
-for iDip=1:length(dipValues)
-    values=quaValues;
-    values(:,size(values,2)+1)=dipValues(iDip);
-    [LGENfileName,APIfileName,~]=TreeStructure(part,pathCombined,dipValues(iDip));
-    nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
-    WriteAPIfile(APIfileName,nAPI,myCyCode);
-end
+CreateMeasFiles(pathCombined,[quadName dipName],[15 5],[1 1],magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
+%    . combined quad-dip-dip scan
+CreateMeasFiles(pathQuaDipDip,["M1-016A-QIB" "M2-001A-IDB" "M3-001A-IDB"],[15 5 5],[1 1 1],magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
 
-%   . all 4 MEBT LGENs:
-[selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,MEBTmagnetNames);
-[LGENfileName,APIfileName,~]=TreeStructure(part,pathQuaAlone);
-%   . quad alone: +/-15A around TM, 1A of step
-quaValues=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,quadName,15,1);
-values=zeros(length(quaValues),1);
-for iMag=1:length(MEBTmagnetNames)
-    if ( strcmp(MEBTmagnetNames(iMag),quadName) )
-        values(:,iMag)=quaValues;
-    else
-        values(:,iMag)=TMcurrsProt(indLGENs(iMag));
-    end
-end
-nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
-WriteAPIfile(APIfileName,nAPI,myCyCode);
-
+% 2 magnets scan at the same time
 % values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,missing(),quadName,15,1);
-% values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,dipName,5,5,values);
+% values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,DGcurrMaxs,dipName,5,5,true,values);
 % nAPI=WriteLGENQAfile("myLGEN.xls",selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
 % WriteAPIfile("myApiFile.txt",nAPI,myCyCode);
 

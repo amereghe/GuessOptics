@@ -1,14 +1,11 @@
-function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetNames,deltas,steps,values)
+function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetNames,deltas,steps,laddBump,values)
     % generate just the bare values for a scan in current around TM values
     % TMcurrs,magnetNames,peakCurrs must have the same length
     % myMagnetNames,deltas,steps must have the same length
     % next step: give the possibility to have ranges of deltas and steps
     nPeakCurrs=4;
-    if ( length(myMagnetNames)==1 )
-        fprintf("generating LGEN values for magnet %s ...\n",myMagnetNames);
-    else
-        fprintf("generating LGEN values for %d magnets...\n",length(myMagnetNames));
-    end
+    fprintf("generating LGEN values for %d magnets...\n",length(myMagnetNames));
+    if ( ~exist('laddBump','var') ), laddBump=true; end
     if ( exist('values','var') )
         nVals=size(values,1); nSeries=size(values,2);
     else
@@ -16,14 +13,24 @@ function values=GenerateLGENvalsAroundTM(TMcurrs,magnetNames,peakCurrs,myMagnetN
     end
     
     for iMag=1:length(myMagnetNames)
+        fprintf("...for magnet %s ...\n",myMagnetNames(iMag));
         % generate scan values
         index=find(magnetNames==myMagnetNames(iMag));
-        tmpValues=TMcurrs(index)-deltas(iMag):steps(iMag):TMcurrs(index)+deltas(iMag);
-        nTmpValues=length(tmpValues);
-        % add bump in current at end of scan
-        if ( ~ismissing(peakCurrs) )
-            tmpValues(nTmpValues+1:nTmpValues+nPeakCurrs)=peakCurrs(index);
-            nTmpValues=nTmpValues+nPeakCurrs;
+        if ( deltas(iMag)==0 )
+            if ( nVals==0 )
+                tmpValues=TMcurrs(index);
+            else
+                tmpValues=ones(1,nVals)*TMcurrs(index);
+            end
+            nTmpValues=length(tmpValues);
+        else
+            tmpValues=TMcurrs(index)-deltas(iMag):steps(iMag):TMcurrs(index)+deltas(iMag);
+            nTmpValues=length(tmpValues);
+            % add bump in current at end of scan
+            if ( laddBump & ~ismissing(peakCurrs) )
+                tmpValues(nTmpValues+1:nTmpValues+nPeakCurrs)=peakCurrs(index);
+                nTmpValues=nTmpValues+nPeakCurrs;
+            end
         end
         % fill in existing array
         newCol=nSeries+1;
