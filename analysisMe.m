@@ -66,7 +66,7 @@ TMcurrsProt=[ ... % [A]
 DGcurrMins=[ ... % [A]
     0.5            0.5            0.5            0.5               ... % MEBT
     0.5            60.0           60.0           60.0              ... % HEBT-hor (H2-H3)
-    0.5            60.0           60.0                            ... % HEBT-ver (H4-V1)
+    0.5            60.0           60.0                             ... % HEBT-ver (H4-V1)
     ];
 DGcurrMaxs=[ ... % [A]
     150.0          300.0          150.0          300.0             ... % MEBT
@@ -95,17 +95,17 @@ MEBTmagnetNames=[ "M1-016A-QIB" "M2-001A-IDB" "M2-009A-QIB" "M3-001A-IDB" ];
 % scanMADname="externals\optics\HEBT\h3_scan_2dips.tfs";
 % quadName="H3-003A-QUE";
 % dipName="H3-003A-SW2";
-% % H3, 3 dipoles
-% scanMADname="externals\optics\HEBT\h3_scan_3dips.tfs";
-% quadName="H3-003A-QUE";
-% dipName="H3-003A-SW2";
-% V1
-scanMADname="externals\optics\HEBT\v1_scan.tfs";
-quadName="H4-013A-QUE";
-dipName="V1-001A-SWV";
+% H3, 3 dipoles
+scanMADname="externals\optics\HEBT\h3_scan_3dips.tfs";
+quadName="H3-003A-QUE";
+dipName="H3-003A-SW2";
+% % V1
+% scanMADname="externals\optics\HEBT\v1_scan.tfs";
+% quadName="H4-013A-QUE";
+% dipName="V1-001A-SWV";
 %
 HEBTmagnetNames=[ "H2-022A-QUE" "H3-003A-SW2" "H3-009A-MBS" "H3-015A-MBS" ];
-HEBTmagnetNames=[ "H4-013A-QUE" "V1-001A-SWV" "V1-005A-MBU" ];
+% HEBTmagnetNames=[ "H4-013A-QUE" "V1-001A-SWV" "V1-005A-MBU" ];
 
 %% main - MADX
 % - acquire data
@@ -141,6 +141,10 @@ CreateMeasFiles(pathDipAlone,dipName,10,0.5,magnetNames,LGENnames,TMcurrsProt,DG
 CreateMeasFiles(pathCombined,[quadName dipName],[15 5],[1 1],magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
 %    . combined quad-dip-dip scan
 CreateMeasFiles(pathQuaDipDip,["M1-016A-QIB" "M2-001A-IDB" "M3-001A-IDB"],[15 5 5],[1 1 1],magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,MEBTmagnetNames);
+
+% HEBT
+pathH3full=sprintf("combined_%s_allDips",quadName);
+CreateMeasFiles(pathH3full,HEBTmagnetNames,[15 5 5 5],[1 1 1 1],magnetNames,LGENnames,TMcurrsProt,DGcurrMaxs,DGcurrMins,part,myCyCode,HEBTmagnetNames,false);
 
 % 2 magnets scan at the same time
 % values=GenerateLGENvalsAroundTM(TMcurrsProt,magnetNames,missing(),quadName,15,1);
