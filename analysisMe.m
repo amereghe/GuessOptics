@@ -91,10 +91,21 @@ myCyCode="240004cc0100"; % Sala 2V, Prot, 90mm
 % dipName="M3-001A-IDB";
 % all MEBT magnets of interest
 MEBTmagnetNames=[ "M1-016A-QIB" "M2-001A-IDB" "M2-009A-QIB" "M3-001A-IDB" ];
-% H3, 2 dipoles
-scanMADname="externals\optics\HEBT\h3_scan_2dips.tfs";
-quadName="H3-003A-QUE";
-dipName="H3-003A-SW2";
+% % H3, 2 dipoles
+% scanMADname="externals\optics\HEBT\h3_scan_2dips.tfs";
+% quadName="H3-003A-QUE";
+% dipName="H3-003A-SW2";
+% % H3, 3 dipoles
+% scanMADname="externals\optics\HEBT\h3_scan_3dips.tfs";
+% quadName="H3-003A-QUE";
+% dipName="H3-003A-SW2";
+% V1
+scanMADname="externals\optics\HEBT\v1_scan.tfs";
+quadName="H4-013A-QUE";
+dipName="V1-001A-SWV";
+%
+HEBTmagnetNames=[ "H2-022A-QUE" "H3-003A-SW2" "H3-009A-MBS" "H3-015A-MBS" ];
+HEBTmagnetNames=[ "H4-013A-QUE" "V1-001A-SWV" "V1-005A-MBU" ];
 
 %% main - MADX
 % - acquire data
@@ -113,6 +124,7 @@ ShowMADXResponses(MADXtable,ScanName,ParNames);
 ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParNames(1),MADXtitle);
 % - show xy ellipses during scans
 ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParNames(1),MADXtitle);
+return
 
 %% main - create configuration files
 % - paths
