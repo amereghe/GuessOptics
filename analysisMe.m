@@ -38,8 +38,8 @@ optimoptions('lsqcurvefit','OptimalityTolerance',1E-12,'FunctionTolerance',1E-8)
 %   * 13 and 14: Idip [A] and K0L [rad] of following dipole;
 
 %% varie input
-% - beam stat quantities
 part="PROTON";
+% - beam stat quantities (for MADX predictions on measurements): MEBT
 emiGeo=[ 4.813808E-6 2.237630E-6 ]; % [pi m rad]
 sigdpp=3E-3; avedpp=-8.436E-3; % []
 % - magnet mapping
@@ -58,21 +58,21 @@ LGENnames=[
     "P7-010A-LGEN" "P7-004A-LGEN" "P7-006A-LGEN" "P7-007A-LGEN"    ... % HEBT-hor (H2-H3)
     "P7-013A-LGEN" "PA-003A-LGEN" "PA-004A-LGEN"                   ... % HEBT-ver (H4-V1)
     ];
-TMcurrsProt=[ 
+TMcurrsProt=[ ... % [A]
     46.5           125.5          25.0           125.93            ... % MEBT
     11.934         664.5          663.5          662.71            ... % HEBT-hor (H2-H3), Sala 2V, Prot, 90mm
     34.17          656.7          670.96                           ... % HEBT-ver (H4-V1), Sala 2V, Prot, 90mm
-    ]; % [A]
-DGcurrMins=[
+    ];
+DGcurrMins=[ ... % [A]
     0.5            0.5            0.5            0.5               ... % MEBT
-    0.5            0.5            0.5            0.5               ... % HEBT-hor (H2-H3)
-    0.5            0.5            0.5            0.5               ... % HEBT-ver (H4-V1)
-    ]; % [A]
-DGcurrMaxs=[
+    0.5            60.0           60.0           60.0              ... % HEBT-hor (H2-H3)
+    0.5            60.0           60.0                            ... % HEBT-ver (H4-V1)
+    ];
+DGcurrMaxs=[ ... % [A]
     150.0          300.0          150.0          300.0             ... % MEBT
-    150.0          3000.0         3000.0         3000.0            ... % HEBT-hor (H2-H3)
-    150.0          3000.0         3000.0                           ... % HEBT-ver (H4-V1)
-    ]; % [A]
+    350.0          2000.0         2990.0         2990.0            ... % HEBT-hor (H2-H3)
+    350.0          2000.0         2990.0                           ... % HEBT-ver (H4-V1)
+    ];
 % - cycle codes
 myCyCode="240004cc0100"; % Sala 2V, Prot, 90mm
 
@@ -85,30 +85,34 @@ myCyCode="240004cc0100"; % Sala 2V, Prot, 90mm
 % scanMADname="externals\optics\MEBT\m3_scan.tfs";
 % quadName="M2-009A-QIB";
 % dipName="M3-001A-IDB";
-% M2-M3
-scanMADname="externals\optics\MEBT\m2m3_scan.tfs";
-quadName="M1-016A-QIB";
-dipName="M3-001A-IDB";
+% % M2-M3
+% scanMADname="externals\optics\MEBT\m2m3_scan.tfs";
+% quadName="M1-016A-QIB";
+% dipName="M3-001A-IDB";
 % all MEBT magnets of interest
 MEBTmagnetNames=[ "M1-016A-QIB" "M2-001A-IDB" "M2-009A-QIB" "M3-001A-IDB" ];
+% H3, 2 dipoles
+scanMADname="externals\optics\HEBT\h3_scan_2dips.tfs";
+quadName="H3-003A-QUE";
+dipName="H3-003A-SW2";
 
 %% main - MADX
 % - acquire data
 [MADXtable,MADXtableHeaders]=ReadMADXData(scanMADname);
 ScanName=GetEleName(MADXtableHeaders(9));
-ParName=GetEleName(MADXtableHeaders(11));
+ParNames=GetEleName(MADXtableHeaders(11:2:end)');
 MonName=GetEleName(MADXtableHeaders(3));
 MADXtitle=sprintf("MADX - %s - %s",LabelMe(ScanName),LabelMe(MonName));
 % - convert MADX optics data into FWHMs and BARs
 [MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs]=MADXtoFWHMsBARs(MADXtable,emiGeo,sigdpp,avedpp);
 % - show scans
-ShowScans(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
+ShowScans(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParNames(1),MADXtitle);
 % - show MADX responses, i.e. KOL(Idip) and K1(Iqua);
-ShowMADXResponses(MADXtable,ScanName,ParName);
+ShowMADXResponses(MADXtable,ScanName,ParNames);
 % - show responses, i.e. x,y(Idip), x,y(Iquad);
-ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
+ShowResponses(MADxBARs,MADxScanXs,MADxParXs,ScanName,ParNames(1),MADXtitle);
 % - show xy ellipses during scans
-ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParName,MADXtitle);
+ShowEllipses(MADxFWHMs,MADxBARs,MADxScanXs,MADxParXs,ScanName,ParNames(1),MADXtitle);
 
 %% main - create configuration files
 % - paths
