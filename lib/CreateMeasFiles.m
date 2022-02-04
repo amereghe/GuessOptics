@@ -11,7 +11,11 @@ function CreateMeasFiles(savePath,eleName,Irange,Istep,magnetNames,LGENnames,TMc
     if ( length(eleName)==1 )
         % single element scan
         [LGENfileName,APIfileName,~]=TreeStructure(part,savePath);
-        nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
+        if ( lDG )
+            nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values,DGcurrMaxs(indLGENs),DGcurrMins(indLGENs));
+        else
+            nAPI=WriteLGENQAfile(LGENfileName,selectedLGENnames,values);
+        end
         WriteAPIfile(APIfileName,nAPI,myCyCode);
     else
         % combined elements scan (cartesian product of 2)
