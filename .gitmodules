@@ -4,3 +4,6 @@
 [submodule "externals/optics"]
 	path = externals/optics
 	url = git@github.com:amereghe/optics.git
+[submodule "externals/ExternalMatLabTools"]
+	path = externals/ExternalMatLabTools
+	url = git@github.com:amereghe/ExternalMatLabTools.git
