@@ -273,6 +273,25 @@ fitIndices(:,1,13)=[ 28 41 ]; fitIndices(:,2,13)=[ 13 27 ];
 fitIndices(:,1,14)=[ 24 34 ]; fitIndices(:,2,14)=[ 16 27 ];
 fitIndices(:,1,15)=[ 29 41 ]; fitIndices(:,2,15)=[ 13 27 ];
 % 
+MADRmatFileNames=[
+    ""
+    ""
+    ""
+    ""
+    ""
+    ""
+    ""
+    ""
+    ""
+    ""
+    "externals\optics\HEBT\h5_009a_que_scan_u1_021b_sfh_remat.tfs"
+    "externals\optics\HEBT\h5_009a_que_scan_u1_005b_sfh_remat.tfs"
+    "externals\optics\HEBT\h5_009a_que_scan_t1_007b_sfh_remat.tfs"
+    "externals\optics\HEBT\h5_009a_que_scan_t1_016b_sfh_remat.tfs"
+    "externals\optics\HEBT\h5_009a_que_scan_z1_007b_sfh_remat.tfs"
+    ""
+    ];
+%
 %% single set
 % - select data set
 iSet=15;
@@ -293,7 +312,7 @@ LPOWmonPaths=sprintf("%s\\%s\\%s\\2022-01-*\\*.txt",kPath,dataParentPath,LPOWmon
 [selectedLGENnames,indLGENs]=ReturnLGENnames(magnetNames,LGENnames,scanMagnets(iSet));
 %
 % CLEAR EXISTING DATA
-clear measData,cyCodes,cyProgs,sumData,BARs,FWHMs,INTs,LGENnamesXLS,nDataCurr;%,IsXLS,tableIs;
+clear measData cyCodes cyProgs sumData BARs FWHMs INTs LGENnamesXLS nDataCurr IsXLS tableIs;
 %
 % ACTUALLY DO THE JOB!
 [measData,cyCodes,cyProgs]=...                           % parse SFM/QBM data
@@ -347,7 +366,7 @@ ShowSpectra(measData(:,:,:,myID),sprintf("%s - ID=%d",myTitle,myID));
 myID=38;
 ShowSpectra(measData(:,:,:,myID),sprintf("%s - ID=%d",myTitle,myID));
 
-%% aggregati di scansioni - acquisisci dati
+%% aggregati di scansioni (plot 1x3x2) - acquisisci dati
 nRows=1; nCols=3; nSetsPerPlot=2;
 mySets=zeros(nRows,nCols,nSetsPerPlot);
 mySets(1,1,1)=15; mySets(1,1,2)=16; % lineZ
@@ -414,13 +433,13 @@ for iRowSet=1:nRows
     end
 end
 
-%% aggregati di scansioni - mostra dati
+%% aggregati di scansioni (plot 1x3x2) - mostra dati
 % CompareSpectraSingleShot(IsXLS,sumData,myScanMagnet,myMonitors);%,myIndices,myIndicesIs);
 CompareSpectra(IsXLS,sumData,myScanMagnet,myMonitors);%,myIndices,myIndicesIs);
 
-%% aggregati di scans - acquisisci dati
-mySets=[ 15 12 11 13 14 ]; 
-myMonitors=monitors(mySets);
+%% aggregati di scans (plot 2x2xN) - acquisisci dati
+mySets=12; %[ 15 12 11 13 14 ]; 
+myMonitors=monitors(mySets)';
 fracEst=0.5:0.1:0.9;
 % CLEAR EXISTING DATA
 clear measData cyCodes cyProgs sumData AdvBARs AdvFWHMs AdvINTs advFWxMls advFWxMrs;
@@ -453,20 +472,73 @@ currentPath=sprintf("%s\\%s\\%s\\%s",kPath,dataParentPath,beamPart,currentFiles(
 IsXLS=IsXLSt(indices(1,1,mySets(iMySet)):indices(1,2,mySets(iMySet)));
 myScanMagnet=scanMagnets(mySets(iMySet));
 
-%%
+%%  aggregati di scans (plot 1x2) - mostra dati
 figure();
 planes=["HOR" "VER"];
+iPlot=0;
+% sigmas
 for iPlane=1:length(planes)
-    subplot(1,2,iPlane);
+    iPlot=iPlot+1;
+    ax(iPlot)=subplot(2,2,iPlot);
     for iMySet=1:length(mySets)
         if ( iMySet>1 ), hold on; end
-        myFilterDs=fitIndices(1,iPlane,mySets(iMySet)):fitIndices(2,iPlane,mySets(iMySet));
-        plot(IsXLS(myFilterDs),GetReducedFWxM(AdvFWHMs(myFilterDs,iPlane,fracEst==0.8,iMySet),0.8,true),"*-");
-        grid on; xlabel("I [A]"); ylabel("\sigma [mm]"); legend(myMonitors,"Location","best");
+        myFilterIDs=fitIndices(1,iPlane,mySets(iMySet)):fitIndices(2,iPlane,mySets(iMySet));
+        plot(IsXLS(myFilterIDs),GetReducedFWxM(AdvFWHMs(myFilterIDs,iPlane,fracEst==0.8,iMySet),0.8,true),"*-");
+        % plot(myFilterIDs,GetReducedFWxM(AdvFWHMs(myFilterIDs,iPlane,fracEst==0.8,iMySet),0.8,true),"*-");
+        grid on; ylabel("\sigma [mm]"); legend(myMonitors,"Location","best");
     end
     title(sprintf("%s plane",planes(iPlane)));
 end
+% baricentres
+for iPlane=1:length(planes)
+    iPlot=iPlot+1;
+    ax(iPlot)=subplot(2,2,iPlot);
+    for iMySet=1:length(mySets)
+        if ( iMySet>1 ), hold on; end
+        myFilterIDs=fitIndices(1,iPlane,mySets(iMySet)):fitIndices(2,iPlane,mySets(iMySet));
+        plot(IsXLS(myFilterIDs),AdvBARs(myFilterIDs,iPlane,iMySet),"*-");
+        % plot(myFilterIDs,AdvBARs(myFilterIDs,iPlane,iMySet),"*-");
+        grid on; ylabel("BAR [mm]"); legend(myMonitors,"Location","best");
+        xlabel("I [A]");
+        % xlabel("ID []");
+    end
+end
+linkaxes(ax,"x");
 sgtitle(sprintf("%s",LabelMe(myScanMagnet)));
+
+%% fit per ricostruire ottica - acquisisci dati
+nn=[0 0];
+planes=["H" "V"];
+% CLEAR EXISTING DATA
+clear rMatrix TM TT SS;
+for iMySet=1:length(mySets)
+    % acquire file with scans of response matrices
+    reMatFileName=MADRmatFileNames(mySets(iMySet));
+    fprintf('parsing file %s ...\n',reMatFileName);
+    rMatrix = readmatrix(reMatFileName,'HeaderLines',1,'Delimiter',',','FileType','text');
+    
+    % compute necessary matrices and arrays
+    for iPlane=1:length(planes)
+        myFilterIDs=fitIndices(1,iPlane,mySets(iMySet)):fitIndices(2,iPlane,mySets(iMySet));
+        nData=length(myFilterIDs);
+        TM(:,:,nn(iPlane)+1:nn(iPlane)+nData,iPlane)=GetTransMatrix(rMatrix(myFilterIDs,:),planes(iPlane),"SCAN");
+        TT(nn(iPlane)+1:nn(iPlane)+nData,iPlane)=AdvBARs(myFilterIDs,iPlane,iMySet);
+        SS(nn(iPlane)+1:nn(iPlane)+nData,iPlane)=GetReducedFWxM(AdvFWHMs(myFilterIDs,iPlane,fracEst==0.8,iMySet),0.8,true);
+        nn(iPlane)=nn(iPlane)+nData;
+    end
+end
+
+%% fit per ricostruire ottica - fai il fit
+% CLEAR EXISTING DATA
+clear beta0 alpha0 emiG z pz;
+% solve systems
+for iPlane=1:length(planes)
+    % only betatron fit
+    [beta0(iPlane),alpha0(iPlane),emiG(iPlane),~,~,~]=FitOpticsThroughSigmaData(TM(1:2,1:2,:,iPlane),SS(:,iPlane));
+    [z(iPlane),pz(iPlane),~]=FitOpticsThroughOrbitData(TM(1:2,1:2,:,iPlane),TT(:,iPlane));
+end
+
+%% funzioni
 
 function CompareSpectraSingleShot(IsXLS,sumData,myScanMagnet,myMonitors,myIndices)%,myIndices,myIndicesIs)
     planes=[ "HOR plane" "VER plane"];
