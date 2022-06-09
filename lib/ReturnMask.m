@@ -15,7 +15,7 @@ function myMask=ReturnMask(iSet,tmpX)
         case 15
             myMask=true(size(tmpX));
             myMask(:,1)=~(tmpX(:,1)==-9.45);
-            myMask(:,2)=~((-13.00<=tmpX(:,2) & tmpX(:,2)<=-11.00 ) | (tmpX(:,2)==-8.45) | (tmpX(:,2)==-6.48));
+            myMask(:,2)=~((-13.00<=tmpX(:,2) & tmpX(:,2)<=-11.00 ) | (tmpX(:,2)==-8.45) );
         otherwise
             % checked 14
             myMask=missing();
